@@ -17,34 +17,32 @@ void mbButtons::add(byte pin, void(*target)(int8_t), int16_t offset)
     digitalWrite(pin, 1);
 }
 
+void mbButtons::service()
+{
+    for(byte i = 0; i < _maxButtons; i++)
+    {
+        if(!_buttons[i])
+            continue;
+        // Log.notice("mbButtons::service 2 pin:%d\n", _buttons[i]->_pin);
+        byte val = digitalRead(_buttons[i]->_pin);
+        if(_buttons[i]->_prev == 0 && val == 1)
+            _buttons[i]->_trigger = true;
+        // Log.notice("mbButtons::service 3 val:%d prev:%d t:%d\n", val, _buttons[i]->_prev, _buttons[i]->_target);
+        _buttons[i]->_prev = val;
+    }
+}
+
 void mbButtons::loop()
 {
     for(byte i = 0; i < _maxButtons; i++)
     {
         if(!_buttons[i])
             continue;
-        // Log.notice("mbButtons::loop 2 pin:%d\n", _buttons[i]->_pin);
-        byte val = digitalRead(_buttons[i]->_pin);
-        if(_buttons[i]->_prev == 0 && val == 1)
+        if(_buttons[i]->_trigger)
+        {
+            Log.notice("mbButtons::loop pin:%d\n", _buttons[i]->_pin);
+            _buttons[i]->_trigger = false;
             _buttons[i]->_target(_buttons[i]->_offset);
-        // Log.notice("mbButtons::loop 3 val:%d prev:%d t:%d\n", val, _buttons[i]->_prev, _buttons[i]->_target);
-        _buttons[i]->_prev = val;
+        }
     }
-    // auto it1 = _buttons.begin();
-    // auto it2 = _prevVal.begin();
-    // for(; it1 != _buttons.end();)
-    // {
-    //     byte val = digitalRead(it1->first);
-    //     if(*it2 == 0 && val == 1) // 0->1 key release
-    //     {
-    //         try
-    //         {
-    //             it1->second();
-    //         }
-    //         catch(...){}
-    //     }
-    //     *it2 = val;
-    //     it1++;
-    //     it2++;
-    // }
 }
